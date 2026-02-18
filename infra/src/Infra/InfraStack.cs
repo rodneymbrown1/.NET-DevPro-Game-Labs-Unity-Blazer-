@@ -76,55 +76,12 @@ public class InfraStack : Stack
             Principals = new[] { new AnyPrincipal() }
         }));
 
-        // Deploy game build - non-Brotli files (index.html, loader.js, TemplateData, StreamingAssets)
-        new BucketDeployment(this, "GameBuildNonBrotli", new BucketDeploymentProps
+        // Deploy game build (.unityweb files use JS decompression fallback, no special headers needed)
+        new BucketDeployment(this, "GameBuildDeployment", new BucketDeploymentProps
         {
-            Sources = new[] { Source.Asset("../games/mcp-unity-1-build-optimized", new Amazon.CDK.AWS.S3.Assets.AssetOptions
-            {
-                Exclude = new[] { "Build/*.br" }
-            }) },
+            Sources = new[] { Source.Asset("../games/mcp-unity-1-build-optimized") },
             DestinationBucket = gameBucket,
-            DestinationKeyPrefix = "mcp-unity-1"
-        });
-
-        // Deploy Brotli-compressed .wasm.br file with correct headers
-        new BucketDeployment(this, "GameBuildWasm", new BucketDeploymentProps
-        {
-            Sources = new[] { Source.Asset("../games/mcp-unity-1-build-optimized/Build", new Amazon.CDK.AWS.S3.Assets.AssetOptions
-            {
-                Exclude = new[] { "*.data.br", "*.framework.js.br", "*.loader.js" }
-            }) },
-            DestinationBucket = gameBucket,
-            DestinationKeyPrefix = "mcp-unity-1/Build",
-            ContentEncoding = "br",
-            ContentType = "application/wasm"
-        });
-
-        // Deploy Brotli-compressed .framework.js.br file with correct headers
-        new BucketDeployment(this, "GameBuildFramework", new BucketDeploymentProps
-        {
-            Sources = new[] { Source.Asset("../games/mcp-unity-1-build-optimized/Build", new Amazon.CDK.AWS.S3.Assets.AssetOptions
-            {
-                Exclude = new[] { "*.data.br", "*.wasm.br", "*.loader.js" }
-            }) },
-            DestinationBucket = gameBucket,
-            DestinationKeyPrefix = "mcp-unity-1/Build",
-            ContentEncoding = "br",
-            ContentType = "application/javascript"
-        });
-
-        // Deploy Brotli-compressed .data.br file with correct headers
-        // Increased memory/timeout/storage for the large data file (~75MB)
-        new BucketDeployment(this, "GameBuildData", new BucketDeploymentProps
-        {
-            Sources = new[] { Source.Asset("../games/mcp-unity-1-build-optimized/Build", new Amazon.CDK.AWS.S3.Assets.AssetOptions
-            {
-                Exclude = new[] { "*.wasm.br", "*.framework.js.br", "*.loader.js" }
-            }) },
-            DestinationBucket = gameBucket,
-            DestinationKeyPrefix = "mcp-unity-1/Build",
-            ContentEncoding = "br",
-            ContentType = "application/octet-stream",
+            DestinationKeyPrefix = "mcp-unity-1",
             MemoryLimit = 1024,
             EphemeralStorageSize = Size.Mebibytes(512)
         });

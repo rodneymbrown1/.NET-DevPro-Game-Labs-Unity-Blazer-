@@ -51,29 +51,4 @@ jobs:
         run: |
           aws s3 sync games/mcp-unity-1-build-optimized \
             s3://${{ secrets.GAME_BUILDS_BUCKET }}/mcp-unity-1 \
-            --delete \
-            --exclude "Build/*.br"
-
-          aws s3 cp games/mcp-unity-1-build-optimized/Build/ \
-            s3://${{ secrets.GAME_BUILDS_BUCKET }}/mcp-unity-1/Build/ \
-            --recursive \
-            --exclude "*" \
-            --include "*.wasm.br" \
-            --content-encoding br \
-            --content-type "application/wasm"
-
-          aws s3 cp games/mcp-unity-1-build-optimized/Build/ \
-            s3://${{ secrets.GAME_BUILDS_BUCKET }}/mcp-unity-1/Build/ \
-            --recursive \
-            --exclude "*" \
-            --include "*.framework.js.br" \
-            --content-encoding br \
-            --content-type "application/javascript"
-
-          aws s3 cp games/mcp-unity-1-build-optimized/Build/ \
-            s3://${{ secrets.GAME_BUILDS_BUCKET }}/mcp-unity-1/Build/ \
-            --recursive \
-            --exclude "*" \
-            --include "*.data.br" \
-            --content-encoding br \
-            --content-type "application/octet-stream"
+            --delete
