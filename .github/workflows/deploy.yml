@@ -1,0 +1,63 @@
+# Prerequisites (manual, one-time AWS setup):
+#   1. Create IAM OIDC identity provider for token.actions.githubusercontent.com
+#      - Audience: sts.amazonaws.com
+#   2. Create IAM role "github-actions-deploy" with trust policy:
+#      {
+#        "Version": "2012-10-17",
+#        "Statement": [{
+#          "Effect": "Allow",
+#          "Principal": { "Federated": "arn:aws:iam::668191889297:oidc-provider/token.actions.githubusercontent.com" },
+#          "Action": "sts:AssumeRoleWithWebIdentity",
+#          "Condition": {
+#            "StringEquals": { "token.actions.githubusercontent.com:aud": "sts.amazonaws.com" },
+#            "StringLike": { "token.actions.githubusercontent.com:sub": "repo:<owner>/<repo>:ref:refs/heads/*" }
+#          }
+#        }]
+#      }
+#   3. Attach permissions to the role: S3, CloudFormation, IAM, Lambda, SSM (for CDK)
+#   4. Create GitHub environments "dev" and "prod" with secret AWS_ROLE_ARN set to the role ARN
+
+name: Deploy
+
+on:
+  push:
+    branches: [dev, prod]
+
+permissions:
+  id-token: write
+  contents: read
+
+jobs:
+  deploy:
+    runs-on: ubuntu-latest
+    environment: ${{ github.ref_name }}
+
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      - name: Setup .NET 9
+        uses: actions/setup-dotnet@v4
+        with:
+          dotnet-version: "9.0.x"
+
+      - name: Setup Node 20
+        uses: actions/setup-node@v4
+        with:
+          node-version: "20"
+
+      - name: Publish Blazor portal
+        run: dotnet publish portal/Portal.csproj -c Release
+
+      - name: Install AWS CDK
+        run: npm install -g aws-cdk
+
+      - name: Configure AWS credentials
+        uses: aws-actions/configure-aws-credentials@v4
+        with:
+          role-to-assume: ${{ secrets.AWS_ROLE_ARN }}
+          aws-region: us-east-1
+
+      - name: CDK deploy
+        working-directory: infra
+        run: cdk deploy --require-approval never -c env=${{ github.ref_name }}
