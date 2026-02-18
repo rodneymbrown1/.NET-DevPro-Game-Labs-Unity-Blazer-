@@ -11,8 +11,10 @@ if (args.Length < 2)
 
 var gameName = args[0];
 var buildPath = args[1];
-var bucketName = "unity-game-builds-668191889297";
-var profileName = "AdministratorAccess-668191889297";
+var bucketName = Environment.GetEnvironmentVariable("GAME_BUILDS_BUCKET")
+    ?? throw new InvalidOperationException("GAME_BUILDS_BUCKET environment variable is required");
+var profileName = Environment.GetEnvironmentVariable("AWS_PROFILE")
+    ?? throw new InvalidOperationException("AWS_PROFILE environment variable is required");
 
 if (!Directory.Exists(buildPath))
 {
