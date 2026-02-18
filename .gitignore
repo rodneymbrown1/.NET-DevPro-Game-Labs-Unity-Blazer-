@@ -1,0 +1,33 @@
+# macOS
+.DS_Store
+
+# .NET build artifacts
+bin/
+obj/
+*.user
+*.suo
+
+# NuGet
+*.nupkg
+**/packages/
+
+# CDK output
+infra/cdk.out/
+
+# Node (CDK dependencies)
+node_modules/
+package-lock.json
+
+# IDE
+.vs/
+.vscode/
+.idea/
+*.swp
+
+# Blazor publish
+**/publish/
+
+# Unity build cache (keep actual builds, ignore meta)
+*.pidb
+*.unityproj
+*.sln.docstates

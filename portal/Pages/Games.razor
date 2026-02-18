@@ -1,0 +1,51 @@
+@page "/games"
+
+<PageTitle>Games | DevPro Game Labs</PageTitle>
+
+<div class="scanlines"></div>
+
+<div class="terminal">
+    <div class="terminal-header">
+        <span class="terminal-dot red"></span>
+        <span class="terminal-dot yellow"></span>
+        <span class="terminal-dot green"></span>
+        <span class="terminal-title">devpro@gamelabs: ~/games</span>
+    </div>
+
+    <div class="terminal-body">
+        <p class="terminal-line boot-1">> cd ~/games</p>
+        <p class="terminal-line boot-2">> ls -la</p>
+        <p class="terminal-line boot-3">> FOUND <span class="success">@games.Length</span> GAME(S):</p>
+
+        <div class="game-list boot-4">
+            @foreach (var game in games)
+            {
+                <a class="game-entry" href="@game.Url" target="_blank">
+                    <span class="game-index">[@game.Index]</span>
+                    <span class="game-name">@game.Title</span>
+                    <span class="game-status">PLAY ▶</span>
+                </a>
+            }
+        </div>
+
+        <p class="terminal-line boot-5">> <a class="back-link" href="/">cd ~/main</a></p>
+
+        <p class="terminal-line cursor-line boot-6">
+            <span class="prompt">> </span><span class="cursor">_</span>
+        </p>
+    </div>
+</div>
+
+<footer>
+    <p>&copy; @DateTime.Now.Year DevPro Game Labs</p>
+</footer>
+
+@code {
+    private record GameInfo(int Index, string Title, string Url);
+
+    private readonly GameInfo[] games =
+    [
+        new(1, "Survival Shooter",
+            "http://unity-game-builds-668191889297.s3-website-us-east-1.amazonaws.com/mcp-unity-1/")
+    ];
+}

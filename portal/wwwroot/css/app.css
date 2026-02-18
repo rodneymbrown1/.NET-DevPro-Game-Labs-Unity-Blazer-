@@ -1,0 +1,251 @@
+@import url('https://fonts.googleapis.com/css2?family=Fira+Code:wght@400;700&display=swap');
+
+* {
+    margin: 0;
+    padding: 0;
+    box-sizing: border-box;
+}
+
+html, body {
+    background: #000;
+    color: #00ff41;
+    font-family: 'Fira Code', 'Courier New', monospace;
+    min-height: 100vh;
+    overflow-x: hidden;
+}
+
+/* Scanline overlay */
+.scanlines {
+    position: fixed;
+    inset: 0;
+    pointer-events: none;
+    z-index: 100;
+    background: repeating-linear-gradient(
+        0deg,
+        transparent,
+        transparent 2px,
+        rgba(0, 0, 0, 0.15) 2px,
+        rgba(0, 0, 0, 0.15) 4px
+    );
+}
+
+/* Terminal window */
+.terminal {
+    max-width: 800px;
+    margin: 4rem auto;
+    border: 1px solid #00ff41;
+    box-shadow:
+        0 0 10px rgba(0, 255, 65, 0.3),
+        0 0 40px rgba(0, 255, 65, 0.1),
+        inset 0 0 20px rgba(0, 255, 65, 0.05);
+}
+
+.terminal-header {
+    display: flex;
+    align-items: center;
+    gap: 0.5rem;
+    padding: 0.75rem 1rem;
+    background: #0a0a0a;
+    border-bottom: 1px solid #00ff41;
+}
+
+.terminal-dot {
+    width: 12px;
+    height: 12px;
+    border-radius: 50%;
+}
+
+.terminal-dot.red { background: #ff5f56; }
+.terminal-dot.yellow { background: #ffbd2e; }
+.terminal-dot.green { background: #27c93f; }
+
+.terminal-title {
+    margin-left: 0.75rem;
+    font-size: 0.8rem;
+    color: #666;
+}
+
+.terminal-body {
+    padding: 2rem;
+    min-height: 60vh;
+    display: flex;
+    flex-direction: column;
+    gap: 0.5rem;
+}
+
+/* Boot-up lines */
+.terminal-line {
+    font-size: 0.95rem;
+    line-height: 1.6;
+    opacity: 0;
+    animation: fadeIn 0.1s forwards;
+}
+
+.success {
+    color: #27c93f;
+}
+
+.boot-1 { animation-delay: 0.3s; }
+.boot-2 { animation-delay: 0.8s; }
+.boot-3 { animation-delay: 1.3s; }
+.boot-4 { animation-delay: 1.8s; }
+.boot-5 { animation-delay: 2.2s; }
+.boot-6 { animation-delay: 3.0s; }
+.boot-7 { animation-delay: 3.4s; }
+.boot-8 { animation-delay: 3.8s; }
+.boot-9 { animation-delay: 4.2s; }
+
+@keyframes fadeIn {
+    to { opacity: 1; }
+}
+
+/* ASCII title */
+.ascii-title {
+    color: #00ff41;
+    font-size: 0.55rem;
+    line-height: 1.2;
+    margin: 1rem 0;
+    opacity: 0;
+    animation: glowIn 0.5s forwards;
+    text-shadow: 0 0 10px rgba(0, 255, 65, 0.7);
+}
+
+@keyframes glowIn {
+    0% {
+        opacity: 0;
+        text-shadow: 0 0 30px rgba(0, 255, 65, 1);
+    }
+    100% {
+        opacity: 1;
+        text-shadow: 0 0 10px rgba(0, 255, 65, 0.7);
+    }
+}
+
+/* Menu items */
+.menu {
+    display: flex;
+    flex-direction: column;
+    gap: 0.5rem;
+    margin: 1rem 0 1rem 1.5rem;
+    opacity: 0;
+    animation: fadeIn 0.1s forwards;
+}
+
+.menu-item {
+    color: #00ff41;
+    text-decoration: none;
+    font-size: 1rem;
+    padding: 0.3rem 0;
+    transition: all 0.15s;
+    display: inline-block;
+    width: fit-content;
+}
+
+.menu-item:hover {
+    color: #000;
+    background: #00ff41;
+    padding-left: 0.5rem;
+    padding-right: 0.5rem;
+    text-shadow: none;
+}
+
+/* Blinking cursor */
+.cursor-line {
+    margin-top: 1rem;
+}
+
+.prompt {
+    color: #00ff41;
+}
+
+.cursor {
+    animation: blink 1s step-end infinite;
+}
+
+@keyframes blink {
+    0%, 100% { opacity: 1; }
+    50% { opacity: 0; }
+}
+
+/* Game list */
+.game-list {
+    display: flex;
+    flex-direction: column;
+    gap: 0.25rem;
+    margin: 1rem 0;
+    opacity: 0;
+    animation: fadeIn 0.1s forwards;
+}
+
+.game-entry {
+    display: flex;
+    align-items: center;
+    gap: 1rem;
+    text-decoration: none;
+    color: #00ff41;
+    padding: 0.5rem 0.75rem;
+    border: 1px solid transparent;
+    transition: all 0.15s;
+}
+
+.game-entry:hover {
+    border-color: #00ff41;
+    background: rgba(0, 255, 65, 0.05);
+}
+
+.game-entry:hover .game-status {
+    opacity: 1;
+}
+
+.game-index {
+    color: #666;
+    font-size: 0.85rem;
+}
+
+.game-name {
+    flex: 1;
+}
+
+.game-status {
+    opacity: 0;
+    color: #27c93f;
+    font-size: 0.85rem;
+    transition: opacity 0.15s;
+}
+
+.back-link {
+    color: #666;
+    text-decoration: none;
+    transition: color 0.15s;
+}
+
+.back-link:hover {
+    color: #00ff41;
+}
+
+/* Footer */
+footer {
+    text-align: center;
+    padding: 2rem;
+    color: #333;
+    font-size: 0.75rem;
+}
+
+/* Responsive */
+@media (max-width: 600px) {
+    .terminal {
+        margin: 1rem;
+    }
+
+    .terminal-body {
+        padding: 1rem;
+    }
+
+    .ascii-title {
+        font-size: 0.35rem;
+    }
+
+    .menu-item {
+        font-size: 0.9rem;
+    }
+}
