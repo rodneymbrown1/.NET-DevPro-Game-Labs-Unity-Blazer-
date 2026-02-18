@@ -4,7 +4,6 @@
 #   3. GitHub environments "dev" and "prod" with:
 #      Secrets:
 #        - AWS_ROLE_ARN: the IAM role ARN
-#      Variables:
 #        - PORTAL_BUCKET: full S3 bucket name for the portal
 #        - GAME_BUILDS_BUCKET: full S3 bucket name for game builds
 #   4. S3 buckets created via CDK (run locally)
@@ -45,18 +44,18 @@ jobs:
       - name: Deploy portal to S3
         run: |
           aws s3 sync portal/bin/Release/net9.0/publish/wwwroot \
-            s3://${{ vars.PORTAL_BUCKET }} \
+            s3://${{ secrets.PORTAL_BUCKET }} \
             --delete
 
       - name: Deploy game builds to S3
         run: |
           aws s3 sync games/mcp-unity-1-build-optimized \
-            s3://${{ vars.GAME_BUILDS_BUCKET }}/mcp-unity-1 \
+            s3://${{ secrets.GAME_BUILDS_BUCKET }}/mcp-unity-1 \
             --delete \
             --exclude "Build/*.br"
 
           aws s3 cp games/mcp-unity-1-build-optimized/Build/ \
-            s3://${{ vars.GAME_BUILDS_BUCKET }}/mcp-unity-1/Build/ \
+            s3://${{ secrets.GAME_BUILDS_BUCKET }}/mcp-unity-1/Build/ \
             --recursive \
             --exclude "*" \
             --include "*.wasm.br" \
@@ -64,7 +63,7 @@ jobs:
             --content-type "application/wasm"
 
           aws s3 cp games/mcp-unity-1-build-optimized/Build/ \
-            s3://${{ vars.GAME_BUILDS_BUCKET }}/mcp-unity-1/Build/ \
+            s3://${{ secrets.GAME_BUILDS_BUCKET }}/mcp-unity-1/Build/ \
             --recursive \
             --exclude "*" \
             --include "*.framework.js.br" \
@@ -72,7 +71,7 @@ jobs:
             --content-type "application/javascript"
 
           aws s3 cp games/mcp-unity-1-build-optimized/Build/ \
-            s3://${{ vars.GAME_BUILDS_BUCKET }}/mcp-unity-1/Build/ \
+            s3://${{ secrets.GAME_BUILDS_BUCKET }}/mcp-unity-1/Build/ \
             --recursive \
             --exclude "*" \
             --include "*.data.br" \
