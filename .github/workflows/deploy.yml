@@ -1,21 +1,10 @@
-# Prerequisites (manual, one-time AWS setup):
-#   1. Create IAM OIDC identity provider for token.actions.githubusercontent.com
-#      - Audience: sts.amazonaws.com
-#   2. Create IAM role "github-actions-deploy" with trust policy:
-#      {
-#        "Version": "2012-10-17",
-#        "Statement": [{
-#          "Effect": "Allow",
-#          "Principal": { "Federated": "arn:aws:iam::668191889297:oidc-provider/token.actions.githubusercontent.com" },
-#          "Action": "sts:AssumeRoleWithWebIdentity",
-#          "Condition": {
-#            "StringEquals": { "token.actions.githubusercontent.com:aud": "sts.amazonaws.com" },
-#            "StringLike": { "token.actions.githubusercontent.com:sub": "repo:<owner>/<repo>:ref:refs/heads/*" }
-#          }
-#        }]
-#      }
-#   3. Attach permissions to the role: S3, CloudFormation, IAM, Lambda, SSM (for CDK)
-#   4. Create GitHub environments "dev" and "prod" with secret AWS_ROLE_ARN set to the role ARN
+# Prerequisites:
+#   1. IAM OIDC provider for token.actions.githubusercontent.com (one-time)
+#   2. IAM role with S3 write permissions, trusted by the OIDC provider
+#   3. GitHub environments "dev" and "prod" with secrets:
+#      - AWS_ROLE_ARN: the IAM role ARN
+#      - AWS_ACCOUNT_ID: the AWS account ID
+#   4. S3 buckets created via CDK (run locally): cdk deploy -c env=dev / cdk deploy -c env=prod
 
 name: Deploy
 
@@ -31,6 +20,8 @@ jobs:
   deploy:
     runs-on: ubuntu-latest
     environment: ${{ github.ref_name }}
+    env:
+      BUCKET_PREFIX: ${{ github.ref_name == 'prod' && '' || format('{0}-', github.ref_name) }}
 
     steps:
       - name: Checkout
@@ -41,16 +32,8 @@ jobs:
         with:
           dotnet-version: "9.0.x"
 
-      - name: Setup Node 20
-        uses: actions/setup-node@v4
-        with:
-          node-version: "20"
-
       - name: Publish Blazor portal
         run: dotnet publish portal/Portal.csproj -c Release
-
-      - name: Install AWS CDK
-        run: npm install -g aws-cdk
 
       - name: Configure AWS credentials
         uses: aws-actions/configure-aws-credentials@v4
@@ -58,6 +41,39 @@ jobs:
           role-to-assume: ${{ secrets.AWS_ROLE_ARN }}
           aws-region: us-east-1
 
-      - name: CDK deploy
-        working-directory: infra
-        run: cdk deploy --require-approval never -c env=${{ github.ref_name }}
+      - name: Deploy portal to S3
+        run: |
+          aws s3 sync portal/bin/Release/net9.0/publish/wwwroot \
+            s3://${{ env.BUCKET_PREFIX }}ai-game-portal-${{ secrets.AWS_ACCOUNT_ID }} \
+            --delete
+
+      - name: Deploy game builds to S3
+        run: |
+          aws s3 sync games/mcp-unity-1-build-optimized \
+            s3://${{ env.BUCKET_PREFIX }}unity-game-builds-${{ secrets.AWS_ACCOUNT_ID }}/mcp-unity-1 \
+            --delete \
+            --exclude "Build/*.br"
+
+          aws s3 cp games/mcp-unity-1-build-optimized/Build/ \
+            s3://${{ env.BUCKET_PREFIX }}unity-game-builds-${{ secrets.AWS_ACCOUNT_ID }}/mcp-unity-1/Build/ \
+            --recursive \
+            --exclude "*" \
+            --include "*.wasm.br" \
+            --content-encoding br \
+            --content-type "application/wasm"
+
+          aws s3 cp games/mcp-unity-1-build-optimized/Build/ \
+            s3://${{ env.BUCKET_PREFIX }}unity-game-builds-${{ secrets.AWS_ACCOUNT_ID }}/mcp-unity-1/Build/ \
+            --recursive \
+            --exclude "*" \
+            --include "*.framework.js.br" \
+            --content-encoding br \
+            --content-type "application/javascript"
+
+          aws s3 cp games/mcp-unity-1-build-optimized/Build/ \
+            s3://${{ env.BUCKET_PREFIX }}unity-game-builds-${{ secrets.AWS_ACCOUNT_ID }}/mcp-unity-1/Build/ \
+            --recursive \
+            --exclude "*" \
+            --include "*.data.br" \
+            --content-encoding br \
+            --content-type "application/octet-stream"
