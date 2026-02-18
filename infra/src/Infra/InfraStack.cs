@@ -6,14 +6,15 @@ using Constructs;
 
 public class InfraStack : Stack
 {
-    public InfraStack(Construct scope, string id, IStackProps? props = null) : base(scope, id, props)
+    public InfraStack(Construct scope, string id, string env, IStackProps? props = null) : base(scope, id, props)
     {
         var accountId = this.Account;
+        var bucketPrefix = env == "prod" ? "" : $"{env}-";
 
         // Portal S3 Bucket
         var portalBucket = new Bucket(this, "PortalBucket", new BucketProps
         {
-            BucketName = $"ai-game-portal-{accountId}",
+            BucketName = $"{bucketPrefix}ai-game-portal-{accountId}",
             WebsiteIndexDocument = "index.html",
             WebsiteErrorDocument = "index.html",
             BlockPublicAccess = new BlockPublicAccess(new BlockPublicAccessOptions
@@ -45,7 +46,7 @@ public class InfraStack : Stack
         // Game Builds S3 Bucket
         var gameBucket = new Bucket(this, "GameBuildsBucket", new BucketProps
         {
-            BucketName = $"unity-game-builds-{accountId}",
+            BucketName = $"{bucketPrefix}unity-game-builds-{accountId}",
             WebsiteIndexDocument = "index.html",
             BlockPublicAccess = new BlockPublicAccess(new BlockPublicAccessOptions
             {
