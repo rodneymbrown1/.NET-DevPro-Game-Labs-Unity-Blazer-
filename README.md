@@ -1,14 +1,14 @@
 # Portal
 
-Blazor WebAssembly SPA with a retro terminal aesthetic. 
+Blazor WebAssembly SPA with a retro terminal aesthetic.
 
 Serves as the landing page and game directory for DevPro Game Labs.
 
 Experimenting in prompt based game development.
 
-![Landing Page](assets/image_of_ladning_page.png)
+![Landing Page](portal/assets/image_of_ladning_page.png)
 
-![Unity Game](assets/image_of_unity.png)
+![Unity Game](portal/assets/image_of_unity.png)
 
 ## Tech Stack
 
