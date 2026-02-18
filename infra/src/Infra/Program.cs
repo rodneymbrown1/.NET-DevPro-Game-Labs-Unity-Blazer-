@@ -3,7 +3,7 @@ using Amazon.CDK;
 var app = new App();
 
 var env = app.Node.TryGetContext("env")?.ToString() ?? "dev";
-var stackName = $"UnityGameDeployments-{char.ToUpper(env[0])}{env[1..]}";
+var stackName = env == "prod" ? "UnityGameDeploymentsStack" : $"UnityGameDeployments-{char.ToUpper(env[0])}{env[1..]}";
 
 new InfraStack(app, stackName, env, new StackProps
 {

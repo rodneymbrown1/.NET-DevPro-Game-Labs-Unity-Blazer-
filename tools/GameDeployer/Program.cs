@@ -11,8 +11,10 @@ if (args.Length < 2)
 
 var gameName = args[0];
 var buildPath = args[1];
-var bucketName = "unity-game-builds-668191889297";
-var profileName = "AdministratorAccess-668191889297";
+var bucketName = Environment.GetEnvironmentVariable("GAME_BUILDS_BUCKET")
+    ?? throw new InvalidOperationException("GAME_BUILDS_BUCKET environment variable is required");
+var profileName = Environment.GetEnvironmentVariable("AWS_PROFILE")
+    ?? throw new InvalidOperationException("AWS_PROFILE environment variable is required");
 
 if (!Directory.Exists(buildPath))
 {
@@ -39,6 +41,7 @@ foreach (var filePath in files)
     var relativePath = Path.GetRelativePath(buildPath, filePath).Replace('\\', '/');
     var s3Key = $"{gameName}/{relativePath}";
     var contentType = GetContentType(filePath);
+    var contentEncoding = GetContentEncoding(filePath);
 
     var request = new TransferUtilityUploadRequest
     {
@@ -48,8 +51,15 @@ foreach (var filePath in files)
         ContentType = contentType
     };
 
+    // Set Content-Encoding for pre-compressed files so browsers auto-decompress
+    if (contentEncoding != null)
+    {
+        request.Headers.ContentEncoding = contentEncoding;
+    }
+
     await transferUtility.UploadAsync(request);
-    Console.WriteLine($"  Uploaded: {s3Key} ({contentType})");
+    var encodingInfo = contentEncoding != null ? $", encoding: {contentEncoding}" : "";
+    Console.WriteLine($"  Uploaded: {s3Key} ({contentType}{encodingInfo})");
 }
 
 var gameUrl = $"http://{bucketName}.s3-website-us-east-1.amazonaws.com/{gameName}/index.html";
@@ -59,6 +69,34 @@ return 0;
 
 static string GetContentType(string filePath)
 {
+    var name = filePath.ToLowerInvariant();
+
+    // For .br files, return the content type of the underlying file (not the compression format)
+    if (name.EndsWith(".br"))
+    {
+        return name switch
+        {
+            _ when name.EndsWith(".wasm.br") => "application/wasm",
+            _ when name.EndsWith(".js.br") => "application/javascript",
+            _ when name.EndsWith(".data.br") => "application/octet-stream",
+            _ when name.EndsWith(".json.br") => "application/json",
+            _ => "application/octet-stream"
+        };
+    }
+
+    // For .gz files, return the content type of the underlying file
+    if (name.EndsWith(".gz"))
+    {
+        return name switch
+        {
+            _ when name.EndsWith(".wasm.gz") => "application/wasm",
+            _ when name.EndsWith(".js.gz") => "application/javascript",
+            _ when name.EndsWith(".data.gz") => "application/octet-stream",
+            _ when name.EndsWith(".json.gz") => "application/json",
+            _ => "application/octet-stream"
+        };
+    }
+
     return Path.GetExtension(filePath).ToLowerInvariant() switch
     {
         ".html" => "text/html",
@@ -73,8 +111,14 @@ static string GetContentType(string filePath)
         ".gif" => "image/gif",
         ".svg" => "image/svg+xml",
         ".ico" => "image/x-icon",
-        ".br" => "application/x-brotli",
-        ".gz" => "application/gzip",
         _ => "application/octet-stream"
     };
+}
+
+static string? GetContentEncoding(string filePath)
+{
+    var name = filePath.ToLowerInvariant();
+    if (name.EndsWith(".br")) return "br";
+    if (name.EndsWith(".gz")) return "gzip";
+    return null;
 }

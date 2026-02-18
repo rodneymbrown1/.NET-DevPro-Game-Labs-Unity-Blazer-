@@ -1,75 +1,55 @@
-# Unity Game Deployments
+# Portal
 
-AWS infrastructure for hosting Unity WebGL game builds and a static portal website featuring "AI based Game Development."
+Blazor WebAssembly SPA with a retro terminal aesthetic.
 
-## Architecture
+Serves as the landing page and game directory for DevPro Game Labs.
+
+Experimenting in prompt based game development.
+
+![Landing Page](portal/assets/image_of_ladning_page.png)
+
+![Unity Game](portal/assets/image_of_unity.png)
+
+## Tech Stack
+
+- .NET 9.0 Blazor WebAssembly
+- CSS3 animations (scanlines, glow, boot sequence)
+- Fira Code monospace font
+
+## Structure
 
 ```
-unity-game-deployments/
-├── infra/                     # AWS CDK (C#) - S3 buckets for portal + game builds
-├── portal/                    # Static website (HTML/CSS)
-├── tools/GameDeployer/        # Console tool to upload game builds to S3
-└── games/                     # Local game build folders (not committed)
+portal/
+├── Program.cs              # WebAssembly entry point
+├── App.razor               # Root routing component
+├── Pages/
+│   ├── Home.razor          # Landing page (/)
+│   └── Games.razor         # Game directory (/games)
+├── Layout/
+│   └── MainLayout.razor    # Layout wrapper
+└── wwwroot/
+    ├── index.html          # HTML shell
+    └── css/app.css         # Terminal-style CSS
 ```
 
-**S3 Buckets:**
-- `ai-game-portal-668191889297` - Static portal website with hero section and game links
-- `unity-game-builds-668191889297` - Unity WebGL builds (one subfolder per game)
-
-## Prerequisites
-
-- [.NET 10 SDK](https://dotnet.microsoft.com/download)
-- [AWS CLI v2](https://aws.amazon.com/cli/)
-- [AWS CDK CLI](https://docs.aws.amazon.com/cdk/latest/guide/cli.html) (`npm install -g aws-cdk`)
-- AWS SSO profile `AdministratorAccess-668191889297` configured
-
-## Setup & Deploy
+## Running Locally
 
 ```bash
-# 1. Login to AWS via SSO
-aws sso login --profile AdministratorAccess-668191889297
-
-# 2. Bootstrap CDK (first time only)
-cd infra && cdk bootstrap --profile AdministratorAccess-668191889297
-
-# 3. Deploy the stack
-cd infra && cdk deploy --profile AdministratorAccess-668191889297
+dotnet run
 ```
 
-The deploy output will print the portal URL and game builds bucket URL.
-
-## Deploying a Game Build
-
-Place your Unity WebGL build output in `games/<game-name>/`, then run:
+## Publishing
 
 ```bash
-cd tools/GameDeployer
-dotnet run -- <game-name> ../../games/<game-name>
+dotnet publish -c Release
 ```
 
-Example:
+Output goes to `bin/Release/net9.0/publish/wwwroot/` — this is what gets deployed to S3.
 
-```bash
-dotnet run -- my-platformer ../../games/my-platformer
-```
+## Adding a Game
 
-The tool uploads all files with correct content types and prints the game URL.
+Edit `Pages/Games.razor` and add an entry to the `games` array:
 
-After deploying a game, update `portal/index.html` to add a card linking to the new game, then redeploy the CDK stack to push portal changes.
-
-## Portal
-
-The portal (`portal/index.html`) is a dark-themed static site with:
-- A hero section titled "AI Based Game Development"
-- A responsive grid of game cards linking to hosted WebGL builds
-- Deployed automatically to the portal S3 bucket via CDK `BucketDeployment`
-
-## Useful CDK Commands
-
-```bash
-cd infra
-cdk synth     # Emit CloudFormation template
-cdk diff      # Compare deployed stack with local changes
-cdk deploy    # Deploy stack to AWS
-cdk destroy   # Tear down all resources
+```csharp
+new(2, "My New Game", "/games/my-new-game/")
 ```
