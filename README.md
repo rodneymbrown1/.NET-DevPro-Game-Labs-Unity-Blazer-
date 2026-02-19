@@ -6,6 +6,10 @@ Serves as the landing page and game directory for DevPro Game Labs.
 
 Experimenting in prompt based game development.
 
+## Survival Shooter:
+https://unity-game-builds-668191889297.s3.us-east-1.amazonaws.com/mcp-unity-1/index.html
+
+
 ![Landing Page](portal/assets/image_of_ladning_page.png)
 
 ![Unity Game](portal/assets/image_of_unity.png)
