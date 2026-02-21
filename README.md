@@ -1,4 +1,5 @@
 # Portal
+Exploring AI Generated Games and LLM charectors
 
 Blazor WebAssembly SPA with a retro terminal aesthetic.
 
